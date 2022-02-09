@@ -1,0 +1,38 @@
+{
+  "name": "@open-names/resolution",
+  "version": "0.1.0",
+  "description": "Resolve Open Names to hash, and get data from Account.",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "license": "MIT",
+  "sideEffects": false,
+  "scripts": {
+    "test": "tsc && jest dist/cjs/test",
+    "build": "tsc && tsc -b tsconfig.esm.json"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.33.0",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.4.0",
+    "@types/node": "^17.0.16"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js"
+    }
+  },
+  "files": [
+    "dist/esm/*.(js|d.ts)",
+    "dist/cjs/*.(js|d.ts)",
+    "src/*.ts",
+    "CHANGELOG.md",
+    "README.md",
+    "package.json",
+    "tsconfig.json",
+    "tsconfig.esm.json"
+  ]
+}

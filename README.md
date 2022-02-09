@@ -1,0 +1,1 @@
+# @open-names/resolution

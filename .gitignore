@@ -1,0 +1,14 @@
+/node_modules
+/dist
+
+/src/test
+/src/**/*.js
+
+yarn-error.log
+
+**.dev.*
+**.secret.*
+**.shell.nut
+**.leaf.nut
+
+**.tsbuildinfo

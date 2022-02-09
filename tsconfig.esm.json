@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2016",
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "outDir": "./dist/esm"
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./src/test"]
+}
