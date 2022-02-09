@@ -2,6 +2,10 @@
   "name": "@open-names/resolution",
   "version": "0.1.0",
   "description": "Resolve Open Names to hash, and get data from Account.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "https://github.com/open-names/resolution",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
