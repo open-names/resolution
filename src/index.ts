@@ -1,4 +1,4 @@
-import { PublicKey, Connection, Commitment } from "@solana/web3.js"
+import { PublicKey, Connection, Commitment, AccountInfo } from "@solana/web3.js"
 
 import { createHash } from 'crypto';
 
@@ -111,23 +111,12 @@ export async function resolve_UTF8_ONS(path: string[], unknownParent?: PublicKey
  * Information describing an account.
  * This type is from `@solana/web3.js`
  */
-export type AccountInfo<T> = {
-  /** `true` if this account's data contains a loaded program */
-  executable: boolean;
-  /** Identifier of the program that owns the account */
-  owner: PublicKey;
-  /** Number of lamports assigned to the account */
-  lamports: number;
-  /** Optional data assigned to the account */
-  data: T;
-  /** Optional rent epoch infor for account */
-  rentEpoch?: number;
-};
+export type { AccountInfo } from '@solana/web3.js';
 
 /**
  * Name info resolved from `AccountInfo.data`
  */
-export type NameInfo = {
+export type NameData = {
   /** This Name's Account Key */
   name: PublicKey;
   /** Parent Name's Account Key */
@@ -140,12 +129,14 @@ export type NameInfo = {
   extra: Buffer;
 }
 
+export type NameInfo = AccountInfo<NameData>;
+
 /**
  * Parse AccountInfo Data to Name Info
  * @param nameAccount 
  * @returns 
  */
-export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null): AccountInfo<NameInfo> {
+export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null): NameInfo {
   const KEY_LEN = 32;
   // owner 32 + class 32 + parent 32 = 96
 	const HEADER_LEN = 96;
@@ -176,12 +167,22 @@ export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInf
 }
 
 /**
- * Query Name Infomation with web3.js
+ * ## Query Name Infomation with web3.js
+ * 
+ * The Solana Account Owner is the program id, this may be confused with `name.owner`.
+ * 
+ * You may use `queryNameData` instead, if you do not need to know the meta-data in account.
+ * 
+ * ```js
+ * let nameInfo = await queryNameInfo(conn, pubkey, commitment);
+ * let nameData = await queryNameData(conn, pubkey, commitment);
+ * // nameInfo.data == nameData
+ * ```
  * 
  * or you may use this.
  * ```js
  * let accountInfo = await connection.getAccountInfo(pubkey);
- * let nameInfo = parseNameAccountInfo(accountInfo)
+ * let nameInfo = parseNameAccountInfo(pubkey, accountInfo)
  * ```
  * @param connection 
  * @param nameKey 
@@ -191,4 +192,22 @@ export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInf
 export function queryNameInfo(connection: Connection, nameKey: PublicKey, commitment?: Commitment) {
 	return connection.getAccountInfo(nameKey, commitment)
 		.then(accountInfo => parseNameAccountInfo(nameKey, accountInfo))
+}
+
+/**
+ * ## Query name data
+ * 
+ * this is just
+ * ```js
+ * let nameInfo = await queryNameInfo(conn, pubkey, commitment);
+ * return nameInfo.data;
+ * ```
+ * @param connection 
+ * @param nameKey 
+ * @param commitment 
+ * @returns 
+ */
+export function queryNameData(connection: Connection, nameKey: PublicKey, commitment?: Commitment) {
+  return queryNameInfo(connection, nameKey, commitment)
+    .then(ret => ret.data);
 }
