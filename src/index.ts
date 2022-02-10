@@ -2,9 +2,9 @@ import { PublicKey, Connection, Commitment } from "@solana/web3.js"
 
 import { createHash } from 'crypto';
 
-export const NAME_PROGRAM_ID = new PublicKey(
-  'namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX'
-);
+export const NAME_PROGRAM_ID_BASE58 = 'namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX';
+
+export const NAME_PROGRAM_ID = new PublicKey(NAME_PROGRAM_ID_BASE58);
 
 export const HASH_PREFIX = 'SPL Name Service';
 
@@ -54,7 +54,7 @@ export async function resolveNameAccountKey(
  * @param name 
  * @returns 
  */
-export function resolveNameAccountKeyByName(name: string, parent?: PublicKey, klass?: PublicKey): Promise<PublicKey> {
+export function resolveNameAccountKeyByName(name: string, klass?: PublicKey, parent?: PublicKey): Promise<PublicKey> {
   return resolveNameAccountKey(
     getHashedName(name),
     klass,
@@ -99,7 +99,7 @@ export async function resolve_UTF8_ONS(path: string[], unknownParent?: PublicKey
 
   for (let i = path.length - 1, parentNameKey = unknownParent; i >= 0; i--) {
     let name = path[i];
-    let nameKey: PublicKey = await resolveNameAccountKeyByName(name, parentNameKey);
+    let nameKey: PublicKey = await resolveNameAccountKeyByName(name, undefined, parentNameKey);
     keys.unshift(nameKey);
     parentNameKey = nameKey;
   }
@@ -125,11 +125,27 @@ export type AccountInfo<T> = {
 };
 
 /**
+ * Name info resolved from `AccountInfo.data`
+ */
+export type NameInfo = {
+  /** This Name's Account Key */
+  name: PublicKey;
+  /** Parent Name's Account Key */
+  parentName: PublicKey;
+  /** The owner PublicKey */
+  owner: PublicKey;
+  /** The class PublicKey */
+  class: PublicKey;
+  /** Extra data in this name */
+  extra: Buffer;
+}
+
+/**
  * Parse AccountInfo Data to Name Info
  * @param nameAccount 
  * @returns 
  */
-export function parseNameAccountInfo(nameAccount: AccountInfo<Buffer> | null) {
+export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null): AccountInfo<NameInfo> {
   const KEY_LEN = 32;
   // owner 32 + class 32 + parent 32 = 96
 	const HEADER_LEN = 96;
@@ -148,12 +164,14 @@ export function parseNameAccountInfo(nameAccount: AccountInfo<Buffer> | null) {
 	let extra = nameAccount.data.slice(HEADER_LEN)
 
 	return {
-		parentName: new PublicKey(parentNameKey),
-		owner: new PublicKey(ownerKey),
-		class: new PublicKey(classKey),
-		data: extra,
-		lamports: nameAccount.lamports,
-    rentEpoch: nameAccount.rentEpoch,
+    ...nameAccount,
+		data: {
+      name: nameKey,
+      parentName: new PublicKey(parentNameKey),
+      owner: new PublicKey(ownerKey),
+      class: new PublicKey(classKey),
+      extra: extra,
+    },
 	}
 }
 
@@ -172,5 +190,5 @@ export function parseNameAccountInfo(nameAccount: AccountInfo<Buffer> | null) {
  */
 export function queryNameInfo(connection: Connection, nameKey: PublicKey, commitment?: Commitment) {
 	return connection.getAccountInfo(nameKey, commitment)
-		.then(accountInfo => parseNameAccountInfo(accountInfo))
+		.then(accountInfo => parseNameAccountInfo(nameKey, accountInfo))
 }
