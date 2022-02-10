@@ -132,38 +132,52 @@ export type NameData = {
 export type NameInfo = AccountInfo<NameData>;
 
 /**
+ * Parse Name Data from buffer.
+ * @param nameKey 
+ * @param data 
+ * @returns 
+ */
+export function parseNameData(nameKey: PublicKey, data: Buffer): NameData {
+  const KEY_LEN = 32;
+  // owner 32 + class 32 + parent 32 = 96
+	const HEADER_LEN = 96;
+
+	if (data.length < HEADER_LEN) {
+		throw new Error('Invalid name account data, data length is smaller than HEADER_LEN.')
+	}
+
+	let parentNameKey = data.slice(0, KEY_LEN);
+	let ownerKey = data.slice(1 * KEY_LEN, 2 * KEY_LEN);
+	let classKey = data.slice(2 * KEY_LEN, 3 * KEY_LEN);
+	let extra = data.slice(HEADER_LEN)
+
+  return {
+    name: nameKey,
+    parentName: new PublicKey(parentNameKey),
+    owner: new PublicKey(ownerKey),
+    class: new PublicKey(classKey),
+    extra: extra,
+  }
+}
+
+/**
  * Parse AccountInfo Data to Name Info
  * @param nameAccount 
  * @returns 
  */
 export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null): NameInfo {
-  const KEY_LEN = 32;
-  // owner 32 + class 32 + parent 32 = 96
-	const HEADER_LEN = 96;
-
 	if (!nameAccount) {
 		throw new Error('Unable to find the given account.');
 	}
 
-	if (!nameAccount.data || nameAccount.data.length < HEADER_LEN) {
-		throw new Error('Invalid name account data')
+	if (!nameAccount.data) {
+		throw new Error('Invalid Account without data.')
 	}
 
-	let parentNameKey = nameAccount.data.slice(0, KEY_LEN);
-	let ownerKey = nameAccount.data.slice(1 * KEY_LEN, 2 * KEY_LEN);
-	let classKey = nameAccount.data.slice(2 * KEY_LEN, 3 * KEY_LEN);
-	let extra = nameAccount.data.slice(HEADER_LEN)
-
-	return {
+  return {
     ...nameAccount,
-		data: {
-      name: nameKey,
-      parentName: new PublicKey(parentNameKey),
-      owner: new PublicKey(ownerKey),
-      class: new PublicKey(classKey),
-      extra: extra,
-    },
-	}
+    data: parseNameData(nameKey, nameAccount.data),
+  }
 }
 
 /**
