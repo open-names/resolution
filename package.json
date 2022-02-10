@@ -1,6 +1,6 @@
 {
   "name": "@open-names/resolution",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Resolve Open Names to hash, and get data from Account.",
   "publishConfig": {
     "access": "public"
