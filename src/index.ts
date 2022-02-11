@@ -165,9 +165,11 @@ export function parseNameData(nameKey: PublicKey, data: Buffer): NameData {
  * @param nameAccount 
  * @returns 
  */
-export function parseNameAccountInfo(nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null): NameInfo {
+export function parseNameAccountInfo(
+  nameKey: PublicKey, nameAccount: AccountInfo<Buffer> | null
+): NameInfo | undefined {
 	if (!nameAccount) {
-		throw new Error('Unable to find the given account.');
+    return undefined;
 	}
 
 	if (!nameAccount.data) {
@@ -223,5 +225,5 @@ export function queryNameInfo(connection: Connection, nameKey: PublicKey, commit
  */
 export function queryNameData(connection: Connection, nameKey: PublicKey, commitment?: Commitment) {
   return queryNameInfo(connection, nameKey, commitment)
-    .then(ret => ret.data);
+    .then(ret => ret?.data);
 }
